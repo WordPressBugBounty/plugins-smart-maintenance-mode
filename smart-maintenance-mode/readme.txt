@@ -3,7 +3,7 @@ Contributors: brijeshk89
 Tags: smart maintenance mode, maintenance mode, ip, allow ip, customize, custom maintenence mode, maintenance, mode
 Requires at least: 3.0
 Tested up to: 6.7
-Stable tag: 1.5.1
+Stable tag: 1.5.2
 License: GPLv3 or later
 License URI: http://www.gnu.org/licenses/gpl.html
 Donate link: http://www.wpinspired.com/smart-maintenance-mode/
@@ -43,6 +43,9 @@ That's it. You're done!
 3. Sample Maintenance Mode page (Can be customized)
 
 == Changelog ==
+
+= 1.5.2 =
+* Security Fix for Multisite setup. Thanks to WPScan Security team for reporting.
 
 = 1.5.1 =
 * [Improvement] Flush Cache after saving settings

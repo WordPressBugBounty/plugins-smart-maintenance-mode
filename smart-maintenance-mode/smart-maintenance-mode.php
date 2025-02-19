@@ -1,13 +1,13 @@
 <?php
 /**
  * @package smart-maintenance-mode
- * @version 1.5.1
+ * @version 1.5.2
  */
 /*
 Plugin Name: Smart Maintenance Mode
 Plugin URI: http://wordpress.org/extend/plugins/smart-maintenance-mode/
 Description: Smart Maintenance Mode is a plugin which allows you to set your site to maintenance mode so that your readers see the Coming Soon page while you can see the actual development of your site. You can create ranges and define the IP range which will see the actual site using Smart Maintenance Mode.
-Version: 1.5.1
+Version: 1.5.2
 Text Domain: smart-maintenance-mode
 Domain Path: /languages/
 Author: Brijesh Kothari
@@ -42,7 +42,7 @@ function smart_maintenance_mode_load_plugin_textdomain(){
 
 add_action( 'plugins_loaded', 'smart_maintenance_mode_load_plugin_textdomain' );
 
-define('smm_version', '1.5.1');
+define('smm_version', '1.5.2');
 
 // Ok so we are now ready to go
 register_activation_hook( __FILE__, 'smart_maintenance_mode_activation');
@@ -109,6 +109,12 @@ function maintenance_mode_page(){
 	
 	$smm_heading = (!empty($smm_heading) ? $smm_heading : 'Website Under Maintenance');
 	$smm_subheading = (!empty($smm_subheading) ? $smm_subheading : 'This website is currently under going maintenance. We will be back online shortly. Please check back later !');
+	
+	if(!current_user_can('unfiltered_html')){
+		$smm_heading = wp_kses_post($smm_heading);
+		$smm_subheading = wp_kses_post($smm_subheading);
+		$smm_html = wp_kses_post($smm_html);
+	}
 	
 	$query = "SELECT * FROM ".$wpdb->prefix."smart_maintenance_mode WHERE ".ip2long($logged_ip)." BETWEEN `start` AND `end` AND `status` = 1";
 	$result = smm_selectquery($query);
@@ -369,11 +375,15 @@ function smart_maintenance_mode_option_page(){
 		
 		$options = array();
 		$options['disable_smm'] = (smm_is_checked('disable_smm') ? 1 : 0);
-		$smart_smm_heading = base64_encode(stripslashes(trim($_POST['smm_heading'])));
-		$smart_smm_subheading = base64_encode(stripslashes(trim($_POST['smm_subheading'])));
 	
 		if(current_user_can('unfiltered_html')){
 			$smart_smm_html = base64_encode(stripslashes(trim($_POST['smm_html'])));
+			$smart_smm_heading = base64_encode(stripslashes(trim($_POST['smm_heading'])));
+			$smart_smm_subheading = base64_encode(stripslashes(trim($_POST['smm_subheading'])));
+		}else{
+			$smart_smm_html = base64_encode(wp_kses_post(stripslashes(trim($_POST['smm_html']))));
+			$smart_smm_heading = base64_encode(wp_kses_post(stripslashes(trim($_POST['smm_heading']))));
+			$smart_smm_subheading = base64_encode(wp_kses_post(stripslashes(trim($_POST['smm_subheading']))));
 		}
 		
 		$smm_countdown_year = trim($_POST['smm_countdown_year']);
@@ -409,10 +419,7 @@ function smart_maintenance_mode_option_page(){
 		
 		$options['del_smm_image'] = (smm_is_checked('del_smm_image') ? 1 : 0);
 		$options['del_smm_heading'] = (smm_is_checked('del_smm_heading') ? 1 : 0);
-	
-		if(current_user_can('unfiltered_html')){
-			$options['del_smm_subheading'] = (smm_is_checked('del_smm_subheading') ? 1 : 0);
-		}
+		$options['del_smm_subheading'] = (smm_is_checked('del_smm_subheading') ? 1 : 0);
 		
 		$options['del_smm_html'] = (smm_is_checked('del_smm_html') ? 1 : 0);
 		$options['del_smm_countdown'] = (smm_is_checked('del_smm_countdown') ? 1 : 0);
@@ -441,7 +448,7 @@ function smart_maintenance_mode_option_page(){
 			$_POST['smm_subheading'] = '';
 		}
 	
-		if(current_user_can('unfiltered_html') && !empty($options['del_smm_html'])){
+		if(!empty($options['del_smm_html'])){
 			update_option('smm_html', '');
 			$_POST['smm_html'] = '';
 		}
@@ -503,7 +510,7 @@ function smart_maintenance_mode_option_page(){
 				update_option('smm_image', $_FILES["smm_file"]["name"]);			
 			}
 			
-			if(current_user_can('unfiltered_html') && !empty($smart_smm_html) && empty($options['del_smm_html'])){			
+			if(!empty($smart_smm_html) && empty($options['del_smm_html'])){			
 				update_option('smm_html', $smart_smm_html);			
 			}
 			
@@ -646,10 +653,7 @@ function smart_maintenance_mode_option_page(){
 	$smm_subheading = base64_decode(get_option('smm_subheading'));
 	$smm_image = get_option('smm_image');
 	$smm_roles = unserialize(get_option('smm_roles'));
-	
-	if(current_user_can('unfiltered_html')){
-		$smm_html = base64_decode(get_option('smm_html'));
-	}
+	$smm_html = base64_decode(get_option('smm_html'));
 	
 	$smm_countdown = unserialize(get_option('smm_countdown'));
 	//print_r($smm_roles);
@@ -797,7 +801,6 @@ function smart_maintenance_mode_option_page(){
 				?>
 			</td>
 		  </tr>
-          <?php if(current_user_can('unfiltered_html')){ ?>
 		  <tr>
 			<th scope="row" valign="top"><label for="smm_html"><?php echo __('Custom HTML content','smart-maintenance-mode'); ?></label></th>
 			<td>
@@ -811,7 +814,6 @@ function smart_maintenance_mode_option_page(){
 				?>
 			</td>
 		  </tr>
-		  <?php } ?>
 		</table><br />
 		<input name="save_smm" class="button action" value="<?php echo __('Save Settings','smart-maintenance-mode'); ?>" type="submit" />		
 	  </form>
