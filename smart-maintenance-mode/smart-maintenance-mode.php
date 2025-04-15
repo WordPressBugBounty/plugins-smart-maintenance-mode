@@ -1,13 +1,13 @@
 <?php
 /**
  * @package smart-maintenance-mode
- * @version 1.5.2
+ * @version 1.5.3
  */
 /*
 Plugin Name: Smart Maintenance Mode
 Plugin URI: http://wordpress.org/extend/plugins/smart-maintenance-mode/
 Description: Smart Maintenance Mode is a plugin which allows you to set your site to maintenance mode so that your readers see the Coming Soon page while you can see the actual development of your site. You can create ranges and define the IP range which will see the actual site using Smart Maintenance Mode.
-Version: 1.5.2
+Version: 1.5.3
 Text Domain: smart-maintenance-mode
 Domain Path: /languages/
 Author: Brijesh Kothari
@@ -42,7 +42,7 @@ function smart_maintenance_mode_load_plugin_textdomain(){
 
 add_action( 'plugins_loaded', 'smart_maintenance_mode_load_plugin_textdomain' );
 
-define('smm_version', '1.5.2');
+define('smm_version', '1.5.3');
 
 // Ok so we are now ready to go
 register_activation_hook( __FILE__, 'smart_maintenance_mode_activation');
@@ -565,9 +565,18 @@ function smart_maintenance_mode_option_page(){
 		$setstatus = smm_sanitize_variables($_GET['setstatus']);
 		$_setstatus = ($setstatus == 'disable' ? 0 : 1);
 		
+		if($setstatus == 'enable'){
+			$success_msg = __('IP range has been enabled successfully', 'smart-maintenance-mode');
+			$_setstatus = 1;
+		}else{
+			$success_msg = __('IP range has been disabled successfully', 'smart-maintenance-mode');
+			$_setstatus = 0;
+		}
+		
 		$wpdb->query("UPDATE ".$wpdb->prefix."smart_maintenance_mode SET `status` = '".$_setstatus."' WHERE `rid` = '".$statusid."'");
+		
 		echo '<div id="message" class="updated fade"><p>'
-			. __('IP range has been '.$setstatus.'d successfully', 'smart-maintenance-mode')
+			. $success_msg
 			. '</p></div>';	
 	}
 	
